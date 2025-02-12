@@ -1,0 +1,187 @@
+@startuml
+Producer <|-- BasicPublisher
+Producer <|-- Publisher
+Producer <|-- PublisherConfirms
+Producer <|-- RPCClient
+Producer *-- "1..N" ConnectionFactory
+Producer "1.." -- "1..N" Message
+Producer -- "1..N" Connection
+Producer -- "1..N" Channel
+Producer -- "1..N" Queue
+Publisher -- "1..N" Exchange
+PublisherConfirms -- "1..N" Exchange
+ConnectionFactory *-- Connection
+ConnectionFactory *-- Channel
+Channel *-- "1..N" Queue
+Channel *-- "0..N" Exchange
+Exchange -- "0..N" Queue: routeMessageTo
+
+Message "0..N" -- "1..N" Channel
+Message "1..N" -- "0..N" Queue
+Message "0..N" -- "1..N" Exchange
+Message "1..1" -- "1..N" BasicProperties
+
+ProducerTraits <|-- Producer
+ConnectionTraits <|-- Producer
+ChannelTraits <|-- Producer
+QueueTraits <|-- Producer
+MessageTraits <|-- Producer
+ExchangeTraits <|-- Producer
+
+RPCClientTraits <|-- RPCClient
+PublisherConfirmsTraits <|-- PublisherConfirms
+PublisherConfirmsBatchTraits <|-- PublisherConfirms
+PublisherConfirmsAsyncTraits <|-- PublisherConfirms
+
+class Producer {
+  producerId
+}
+
+class ConnectionFactory {
+  host: string = "localhost"
+  username: string = "uess"
+  password: string = "guess"
+  virtualHost: string = "/"
+  nbMaxChannel: int = 
+  maxFrameSize: int = 0
+  hearbeatInterval: int = 60000
+  defaultPort: int = -1
+  amqpPort: int = 5672
+  amqSSLPort: int = 5671
+  connectTimeout: int = 60000
+  handshakeTimout: int = 10000 
+  shutdownTimout: int = 10000
+  rpcTimout: int = 10
+  netRecoveryInterval: int = 5000
+  workPoolTimout: int = -1 
+  preferedTLSProtocol: string= "TLSv1.2"
+  fallbackTLSProtocol: string = "TLSv1"
+}
+
+class Connection {
+  connectionId: string
+  connectionStatus: ConnectionStatus
+}
+
+class Message {
+  content: string
+  routingKey: string
+  type: MessageTypeEnum
+}
+
+class BasicProperties {
+  contentType: string = "text/plain"
+  contentEncoding: string = null
+  headers: Map<String, Object> = null
+  deliveryMode: int = 1
+  priority: int = 0
+  correlationId: string = null
+  replyTo: string = null
+  expiration: string = null
+  messageId: string = null
+  timestamp: Date = null
+  type: string = null
+  userId: string = null
+  appId: string = null
+  clusterId: string = null
+}
+
+class Queue {
+  queueName: string
+  durable: boolean = false
+  exclusive: boolean = false
+  autoDelete: boolean = false
+  arguments: Map<String, Object>
+}
+
+class Exchange {
+  exchangeName: string = ""
+  exchangeType: ExchangeType
+}
+
+enum ExchangeType {
+  FANOUT
+  DIRECT
+  TOPIC
+  HEADER
+}
+
+enum ConnectionStatus {
+  OPENED
+  CLOSED
+}
+
+enum MessageType {
+  Document
+  Request
+}
+
+class ProducerTraits <<trait>> {
+    publish(): void
+    publishWithBasicProperties(): void
+}
+
+class PublisherConfirmsTraits <<trait>> {
+    publishMessagesIndividually(): void
+    waitForConfirmsOrDie(): void
+}
+
+class PublisherConfirmsAsyncTraits <<trait>> {
+    handlePublishConfirmsAsynchronously(): void
+    addConfirmListener(): void
+}
+
+class PublisherConfirmsBatchTraits <<trait>> {
+    publishMessagesInBatch(): void
+    waitForConfirmsOrDie(): void
+}
+
+class RPCClientTraits <<trait>> {
+    purgeQueue(): void
+    call(): string
+}
+
+class ConnectionTraits <<trait>> {
+    createConnection(): Connection
+    createConnectionWithPortAndCredential(): Connection
+    closeConnection(): Connection
+}
+
+
+class ChannelTraits <<trait>> {
+    createChannel(Connection): Channel
+    channelBasicQos(): void
+    channelBasicNack(): void
+    channelBasicReject(): void
+    channelBasicCancel(): void
+}
+
+class ExchangeTraits <<trait>> {
+    declareExchange(): void
+}
+
+class QueueTraits <<trait>> {
+    declareQueueMinimal(): Queue
+    declareQueue(): Queue
+    declareQueueDurable(): Queue
+    declareQueueExclusive(): Queue
+    declareQueueAutoDelete(): Queue
+    declareQueueWithArgs(): Queue
+}
+
+class MessageTraits <<trait>> {
+    getBytesFromText(string): byte[]
+    getBytesFromXmlOrJsonPath(string): byte[]
+    getBytesFromJson(string): byte[]
+    getBytesFromXml(string): byte[]
+    getBytesFromProtobuf(string): byte[]
+    getBytesFromAvro(string): byte[]
+    createMessageProperties(): BasicProperties
+}
+
+interface IRCPCalledMethod {
+    call(T): T
+}
+IWorkTask <|-- CompetingConsumer
+@enduml
+

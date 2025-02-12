@@ -1,0 +1,179 @@
+@startuml
+Consumer <|-- SelectiveConsumer
+Consumer <|-- CompetingConsumer
+Consumer <|-- RPCServer
+Consumer *-- ConnectionFactory
+Consumer -- Connection
+Consumer -- "1..N" Channel
+Consumer -- "1..N" Queue
+Consumer -- "0..N" Exchange
+Consumer -- "1..N" Binding
+Consumer "0..N" -- "0..N" Message
+
+CompetingConsumer "1..N"-- "1..1" Queue : assignedQueue
+ConnectionFactory *-- "0..N" Connection
+Connection *-- "0..N" Channel
+Exchange "1..1"-- Binding
+Queue "1..1" -- Binding
+Channel *-- "0..N" Exchange
+
+RPCServer -- BasicProperties: replyTo
+
+Message "1..N" -- "0..N" Channel
+Message "1..N" -- "0..N" Queue
+Message "0..N" -- "0..N" Exchange
+Message "1..1"-- "0..N" BasicProperties
+
+ConsumerTraits <|-- Consumer
+ConnectionTraits <|-- Consumer
+ChannelTraits <|-- Consumer
+QueueTraits <|-- Consumer
+MessageTraits <|-- Consumer
+ExchangeTraits <|-- Consumer
+
+RPCServerTraits <|-- RPCServer
+
+IWorkTask <|-- CompetingConsumer
+
+class Consumer {
+  consumerId
+}
+
+class ConnectionFactory {
+  host: string = "localhost"
+  username: string = "guess"
+  password: string = "guess"
+  virtualHost: string = "/"
+  nbMaxChannel: int = 
+  maxFrameSize: int = 0
+  hearbeatInterval: int = 60000
+  defaultPort: int = -1
+  amqpPort: int = 5672
+  amqSSLPort: int = 5671
+  connectTimeout: int = 60000
+  handshakeTimout: int = 10000 
+  shutdownTimout: int = 10000
+  rpcTimout: int = 10
+  netRecoveryInterval: int = 5000
+  workPoolTimout: int = -1 
+  preferedTLSProtocol: string= "TLSv1.2"
+  fallbackTLSProtocol: string = "TLSv1"
+}
+
+class Connection {
+  connectionId: string
+  connectionStatus: ConnectionStatus
+}
+
+class Message {
+  content: string
+  type: MessageTypeEnum
+}
+
+class Binding {
+  routingKey: string
+}
+
+class BasicProperties {
+  contentType: string = "text/plain"
+  contentEncoding: string = null
+  headers: Map<String, Object> = null
+  deliveryMode: int = 1
+  priority: int = 0
+  correlationId: string = null
+  replyTo: string = ""
+  expiration: string = null
+  messageId: string = null
+  timestamp: Date = null
+  type: string = null
+  userId: string = null
+  appId: string = null
+  clusterId: string = null
+}
+
+class Queue {
+  queueName: string
+  durable: boolean = false
+  exclusive: boolean = false
+  autoDelete: boolean = false
+  arguments: Map<String, Object>
+}
+
+class Exchange {
+  exchangeName: string = ""
+  exchangeType: ExchangeType
+}
+
+enum ExchangeType {
+  FANOUT
+  DIRECT
+  TOPIC
+  HEADER
+}
+
+enum ConnectionStatus {
+  OPENED
+  CLOSED
+}
+
+enum MessageType {
+  Document
+  Request
+}
+
+class ConsumerTraits <<trait>> {
+    consume(): void
+    consumeNoAck(): void
+    consumeCompeting(): void
+}
+
+class RPCServerTraits <<trait>> {
+    handleMessage(): void
+}
+
+class ConnectionTraits <<trait>> {
+    createConnection(): Connection
+    createConnectionWithPortAndCredential(): Connection
+    closeConnection(): Connection
+}
+
+
+class ChannelTraits <<trait>> {
+    createChannel(): void
+    channelBasicQos(): void
+    channelBasicAck(): void
+    channelBasicNack(): void
+    channelBasicReject(): void
+    channelBasicCancel(): void
+    channelQueueBind(): void
+}
+
+class ExchangeTraits <<trait>> {
+    declareExchange(): void
+}
+
+class QueueTraits <<trait>> {
+    declareQueueMinimal(): Queue
+    declareQueue(): Queue
+    declareQueueDurable(): Queue
+    declareQueueExclusive(): Queue
+    declareQueueAutoDelete(): Queue
+    declareQueueWithArgs(): Queue
+    channelQueueBind(): void
+}
+
+class MessageTraits <<trait>> {
+    getBytesFromText(string): byte[]
+    getBytesFromXmlOrJsonPath(string): byte[]
+    getBytesFromJson(string): byte[]
+    getBytesFromXml(string): byte[]
+    getBytesFromProtobuf(string): byte[]
+    getBytesFromAvro(string): byte[]
+    createMessageProperties(): BasicProperties
+}
+
+interface IWorkTask {
+    doWork(String): void
+}
+@enduml
+
