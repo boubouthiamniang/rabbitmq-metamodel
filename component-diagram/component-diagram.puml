@@ -1,0 +1,38 @@
+@startuml
+
+skinparam componentStyle rectangle
+
+package "Message Broker System" {
+
+    [Producer] --> [Exchange] : Publishes Message
+    [Exchange] --> [Queue] : Routes Message
+    [Queue] --> [Consumer] : Delivers Message
+    
+    component Producer {
+        [BasicPublisher]
+        [Publisher]
+        [PublisherConfirms]
+        [RPCClient]
+    }
+    
+    component Consumer {
+        [SelectiveConsumer]
+        [CompetingConsumer]
+        [RPCServer]
+    }
+    
+    Producer --> [ConnectionFactory] : Creates Connection
+    Consumer --> [ConnectionFactory] : Uses Connection
+    ConnectionFactory --> [Connection] : Manages
+    Connection --> [Channel] : Opens
+    Channel --> [Exchange] : Binds
+    Channel --> [Queue] : Declares
+    
+    [Message] --> [Exchange] : Published To
+    [Message] --> [Queue] : Enqueued
+    
+    Producer .> [Message] : Produces
+    Consumer .> [Message] : Consumes
+}
+
+@enduml
