@@ -16,6 +16,7 @@ package "Message Broker System" {
     }
     
     component Consumer {
+        [BasicConsumer]
         [SelectiveConsumer]
         [CompetingConsumer]
         [RPCServer]
