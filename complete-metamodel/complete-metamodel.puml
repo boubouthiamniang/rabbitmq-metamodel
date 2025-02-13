@@ -1,0 +1,64 @@
+@startuml
+
+'=======================
+' PRODUCER METAMODEL
+'=======================
+Producer <|-- BasicPublisher
+Producer <|-- Publisher
+Producer <|-- PublisherConfirms
+Producer <|-- RPCClient
+Producer *-- "1..N" ConnectionFactory
+Producer "1.." -- "1..N" Message
+Producer -- "1..N" Connection
+Producer -- "1..N" Channel
+Producer -- "1..N" Queue
+Publisher -- "1..N" Exchange
+PublisherConfirms -- "1..N" Exchange
+ConnectionFactory *-- Connection
+ConnectionFactory *-- Channel
+Channel *-- "1..N" Queue
+Channel *-- "0..N" Exchange
+Exchange -- "0..N" Queue: routeMessageTo
+
+Message "0..N" -- "1..N" Channel
+Message "1..N" -- "0..N" Queue
+Message "0..N" -- "1..N" Exchange
+Message "1..1" -- "1..N" BasicProperties
+
+'=======================
+' CONSUMER METAMODEL
+'=======================
+Consumer <|-- SelectiveConsumer
+Consumer <|-- CompetingConsumer
+Consumer <|-- RPCServer
+Consumer *-- ConnectionFactory
+Consumer -- Connection
+Consumer -- "1..N" Channel
+Consumer -- "1..N" Queue
+Consumer -- "0..N" Exchange
+Consumer -- "1..N" Binding
+Consumer "0..N" -- "0..N" Message
+
+CompetingConsumer "1..N"-- "1..1" Queue : assignedQueue
+ConnectionFactory *-- "0..N" Connection
+Connection *-- "0..N" Channel
+Exchange "1..1"-- Binding
+Queue "1..1" -- Binding
+Channel *-- "0..N" Exchange
+
+RPCServer -- BasicProperties: replyTo
+
+Message "1..N" -- "0..N" Channel
+Message "1..N" -- "0..N" Queue
+Message "0..N" -- "0..N" Exchange
+Message "1..1"-- "0..N" BasicProperties
+
+'=======================
+' INTEGRATION BETWEEN PRODUCER & CONSUMER
+'=======================
+Producer ..> Consumer : sends Messages
+Exchange <..> Queue : routes Messages
+Message --> Queue : stored before consumption
+Queue --> Consumer : delivers Messages
+
+@enduml
