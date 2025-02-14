@@ -137,8 +137,8 @@ class PublisherConfirmsBatchTraits <<trait>> {
 }
 
 class RPCClientTraits <<trait>> {
-    purgeQueue(): void
-    call(string): string
+    publishRPCRequest(): void
+    processRequest(string): string
 }
 
 class ConnectionTraits <<trait>> {
