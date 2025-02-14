@@ -33,8 +33,6 @@ ExchangeTraits <|-- Consumer
 
 RPCServerTraits <|-- RPCServer
 
-IWorkTask <|-- CompetingConsumer
-
 class Consumer {
   consumerId
 }
@@ -125,6 +123,7 @@ class ConsumerTraits <<trait>> {
     consume(): void
     consumeNoAck(): void
     consumeCompeting(): void
+    doWork(): void
 }
 
 class RPCServerTraits <<trait>> {
